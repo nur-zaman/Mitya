@@ -1,0 +1,228 @@
+/* Lives in a shadow root on top of Meet, which is dark. Always dark here. */
+
+.card {
+  --bg: rgb(28 27 25 / 0.94);
+  --line: rgb(255 255 255 / 0.09);
+  --ink: #f3f0ea;
+  --muted: #a9a399;
+  --ask: #7fc8b4;
+  --flag: #f0a57c;
+  --remind: #a9b4f2;
+  --explain: #d7c77a;
+
+  /* WXT resets the shadow host, so the card has to set its own stacking. */
+  position: fixed;
+  z-index: 2147483000;
+  width: 320px;
+  max-height: min(70vh, 560px);
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.35);
+  backdrop-filter: blur(10px);
+  font:
+    13px/1.45 system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  overflow: hidden;
+  user-select: none;
+  --mark-ink: #1c1b19;
+}
+
+.card[data-collapsed='true'] {
+  width: auto;
+  min-width: 180px;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px 9px 12px;
+  cursor: grab;
+  color: var(--ink);
+}
+
+header:active {
+  cursor: grabbing;
+}
+
+.status {
+  flex: 1;
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.status::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 7px;
+  border-radius: 50%;
+  vertical-align: 1px;
+  background: currentColor;
+}
+
+.status-live::before {
+  background: var(--ask);
+  animation: breathe 2.4s ease-in-out infinite;
+}
+.status-busy::before {
+  background: var(--explain);
+  animation: breathe 0.8s ease-in-out infinite;
+}
+.status-warn {
+  color: var(--flag);
+}
+
+@keyframes breathe {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.count {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: 99px;
+  background: var(--ink);
+  color: #1c1b19;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.icon {
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1;
+}
+
+.icon:hover {
+  background: var(--line);
+  color: var(--ink);
+}
+
+.hint {
+  margin: 0 12px 10px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.nudges {
+  list-style: none;
+  margin: 0;
+  padding: 0 8px;
+  overflow-y: auto;
+  user-select: text;
+}
+
+.nudge {
+  position: relative;
+  padding: 9px 30px 10px 10px;
+  border-top: 1px solid var(--line);
+  animation: arrive 260ms ease-out;
+}
+
+.nudge p {
+  margin: 2px 0 0;
+}
+
+.nudge .detail {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.kind {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.kind-ask .kind {
+  color: var(--ask);
+}
+.kind-flag .kind {
+  color: var(--flag);
+}
+.kind-remind .kind {
+  color: var(--remind);
+}
+.kind-explain .kind {
+  color: var(--explain);
+}
+
+.dismiss {
+  position: absolute;
+  top: 6px;
+  right: 2px;
+}
+
+@keyframes arrive {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+footer {
+  display: flex;
+  gap: 6px;
+  padding: 10px 12px 12px;
+  border-top: 1px solid var(--line);
+}
+
+footer button {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: var(--ink);
+  color: #1c1b19;
+  font-weight: 550;
+}
+
+footer button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+footer button.quiet {
+  background: transparent;
+  border-color: var(--line);
+  color: var(--ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status::before,
+  .nudge {
+    animation: none;
+  }
+}

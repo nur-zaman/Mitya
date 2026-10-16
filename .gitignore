@@ -1,0 +1,13 @@
+node_modules/
+.output/
+.wxt/
+*.zip
+.env
+.env.*
+
+# Editors and OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
