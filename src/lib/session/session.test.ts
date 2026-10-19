@@ -3,6 +3,7 @@ import { EMPTY_BRIEF } from '../storage';
 import {
   applySuggestion,
   createSession,
+  newestFirst,
   replaceBrief,
   transcriptWords,
   upsertUtterance,
@@ -71,6 +72,14 @@ describe('applySuggestion', () => {
     const session = newSession();
     applySuggestion(session, { nudges: [], coveredAgendaIds: ['a1', 'a9', 'a1'] }, 1);
     expect(session.coveredAgendaIds).toEqual(['a1']);
+  });
+
+  it('orders nudges newest batch first, keeping order within a batch', () => {
+    const session = newSession();
+    const nudge = (text: string) => ({ kind: 'ask' as const, text, detail: '' });
+    applySuggestion(session, { nudges: [nudge('A'), nudge('B')], coveredAgendaIds: [] }, 1);
+    applySuggestion(session, { nudges: [nudge('C'), nudge('D')], coveredAgendaIds: [] }, 2);
+    expect(newestFirst(session.nudges).map((n) => n.text)).toEqual(['C', 'D', 'A', 'B']);
   });
 });
 

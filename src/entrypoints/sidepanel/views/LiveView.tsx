@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { NUDGE_LABELS } from '@/lib/labels';
 import { send } from '@/lib/messages';
+import { isFresh, newestFirst } from '@/lib/session/session';
 import type { Session } from '@/lib/session/types';
 import { RecapPanel } from './RecapPanel';
 
@@ -110,7 +111,7 @@ function Agenda({ session }: { session: Session }) {
 
 function Nudges({ session }: { session: Session }) {
   const [showDismissed, setShowDismissed] = useState(false);
-  const all = [...session.nudges].reverse();
+  const all = newestFirst(session.nudges);
   const visible = showDismissed ? all : all.filter((n) => !n.dismissed);
   const hidden = all.length - all.filter((n) => !n.dismissed).length;
 
@@ -135,7 +136,7 @@ function Nudges({ session }: { session: Session }) {
           {visible.map((nudge) => (
             <li
               key={nudge.id}
-              className={`nudge kind-${nudge.kind} ${nudge.dismissed ? 'dismissed' : ''}`}
+              className={`nudge kind-${nudge.kind} ${nudge.dismissed ? 'dismissed' : ''} ${isFresh(nudge, Date.now()) ? 'fresh' : ''}`}
             >
               <div className="nudge-head">
                 <span className="kind">{NUDGE_LABELS[nudge.kind]}</span>

@@ -76,10 +76,12 @@ header:active {
   background: var(--ask);
   animation: breathe 2.4s ease-in-out infinite;
 }
+
 .status-busy::before {
   background: var(--explain);
   animation: breathe 0.8s ease-in-out infinite;
 }
+
 .status-warn {
   color: var(--flag);
 }
@@ -170,12 +172,15 @@ button {
 .kind-ask .kind {
   color: var(--ask);
 }
+
 .kind-flag .kind {
   color: var(--flag);
 }
+
 .kind-remind .kind {
   color: var(--remind);
 }
+
 .kind-explain .kind {
   color: var(--explain);
 }
@@ -184,6 +189,18 @@ button {
   position: absolute;
   top: 6px;
   right: 2px;
+}
+
+.nudge.fresh {
+  animation:
+    arrive 260ms ease-out,
+    glow 2.4s ease-out;
+}
+
+@keyframes glow {
+  from {
+    background: rgb(255 255 255 / 0.08);
+  }
 }
 
 @keyframes arrive {
@@ -221,8 +238,10 @@ footer button.quiet {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .status::before,
-  .nudge {
+  .nudge,
+  .nudge.fresh {
     animation: none;
   }
 }

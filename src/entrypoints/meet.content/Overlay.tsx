@@ -10,6 +10,7 @@ import {
   settingsItem,
   normalizeSettings,
 } from '@/lib/storage';
+import { isFresh, newestFirst } from '@/lib/session/session';
 import { useStorageItem } from '@/lib/use-storage';
 import type { MeetWatcher } from './watcher';
 
@@ -30,10 +31,10 @@ export function Overlay({ watcher }: { watcher: MeetWatcher }) {
     hasKey: hasCredentials(settings),
     captionsOn: meet.captionsOn,
   });
-  const nudges = (session?.nudges ?? [])
-    .filter((n) => !n.dismissed)
-    .slice(-VISIBLE_NUDGES)
-    .reverse();
+  const nudges = newestFirst((session?.nudges ?? []).filter((n) => !n.dismissed)).slice(
+    0,
+    VISIBLE_NUDGES,
+  );
 
   return (
     <div className="card" ref={drag.ref} style={drag.style} data-collapsed={collapsed}>
@@ -74,7 +75,10 @@ export function Overlay({ watcher }: { watcher: MeetWatcher }) {
           {nudges.length > 0 && (
             <ul className="nudges">
               {nudges.map((nudge) => (
-                <li key={nudge.id} className={`nudge kind-${nudge.kind}`}>
+                <li
+                  key={nudge.id}
+                  className={`nudge kind-${nudge.kind} ${isFresh(nudge, Date.now()) ? 'fresh' : ''}`}
+                >
                   <span className="kind">{NUDGE_LABELS[nudge.kind]}</span>
                   <p>{nudge.text}</p>
                   {nudge.detail && <p className="detail">{nudge.detail}</p>}
@@ -142,9 +146,9 @@ function useDraggable() {
 
   const style: React.CSSProperties = position
     ? {
-        left: clamp(position.x, 0, window.innerWidth - 120),
-        top: clamp(position.y, 0, window.innerHeight - 40),
-      }
+      left: clamp(position.x, 0, window.innerWidth - 120),
+      top: clamp(position.y, 0, window.innerHeight - 40),
+    }
     : { right: 16, top: 16 };
 
   return { ref, style, onPointerDown };

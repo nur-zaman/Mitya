@@ -1,7 +1,7 @@
 import type { TrackedUtterance } from '../captions/tracker';
 import { countWords } from '../captions/merge';
 import type { LiveSuggestion } from '../llm/prompts';
-import type { Brief, Session, SessionSummary } from './types';
+import type { Brief, Nudge, Session, SessionSummary } from './types';
 
 export function createSession(options: {
   brief: Brief;
@@ -72,6 +72,18 @@ export function applySuggestion(session: Session, suggestion: LiveSuggestion, no
   for (const id of suggestion.coveredAgendaIds) {
     if (known.has(id) && !session.coveredAgendaIds.includes(id)) session.coveredAgendaIds.push(id);
   }
+}
+
+const FRESH_MS = 4000;
+
+/** Newest batch first; nudges from the same batch keep the model's order. */
+export function newestFirst(nudges: Nudge[]): Nudge[] {
+  return [...nudges].sort((a, b) => b.createdAt - a.createdAt);
+}
+
+/** Recent enough that the UI should point it out. */
+export function isFresh(nudge: Nudge, now: number): boolean {
+  return now - nudge.createdAt < FRESH_MS;
 }
 
 /** Keeps the session's brief in sync when the user edits it mid-meeting. */

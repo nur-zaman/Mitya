@@ -160,12 +160,15 @@ kbd {
 .status-live::before {
   background: var(--ask);
 }
+
 .status-busy::before {
   background: var(--explain);
 }
+
 .status-warn {
   color: var(--danger);
 }
+
 .status-warn::before {
   background: var(--danger);
 }
@@ -257,7 +260,7 @@ main {
   padding-left: 18px;
 }
 
-.empty li + li {
+.empty li+li {
   margin-top: 4px;
 }
 
@@ -347,8 +350,8 @@ button {
   min-width: 0;
 }
 
-.field > span,
-.field > legend {
+.field>span,
+.field>legend {
   padding: 0;
   font-size: 12px;
   font-weight: 600;
@@ -444,7 +447,7 @@ input[type='checkbox'] {
   cursor: pointer;
 }
 
-.segmented button + button {
+.segmented button+button {
   border-left: 1px solid var(--line-strong);
 }
 
@@ -488,7 +491,7 @@ input[type='checkbox'] {
   border-bottom: 1px solid var(--line);
 }
 
-.session-bar > div:first-child {
+.session-bar>div:first-child {
   display: flex;
   flex-direction: column;
 }
@@ -511,7 +514,7 @@ input[type='checkbox'] {
   margin-top: 3px;
 }
 
-.checklist input:checked + span {
+.checklist input:checked+span {
   color: var(--muted);
   text-decoration: line-through;
   text-decoration-color: var(--line-strong);
@@ -534,11 +537,21 @@ input[type='checkbox'] {
   background: var(--surface);
 }
 
+.nudge.fresh {
+  animation: glow 2.4s ease-out;
+}
+
+@keyframes glow {
+  from {
+    background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  }
+}
+
 .nudge.dismissed {
   opacity: 0.55;
 }
 
-.nudge p + p {
+.nudge p+p {
   margin-top: 3px;
   font-size: 12.5px;
 }
@@ -566,12 +579,15 @@ input[type='checkbox'] {
 .kind-ask {
   --kind-color: var(--ask);
 }
+
 .kind-flag {
   --kind-color: var(--flag);
 }
+
 .kind-remind {
   --kind-color: var(--remind);
 }
+
 .kind-explain {
   --kind-color: var(--explain);
 }
@@ -615,7 +631,7 @@ input[type='checkbox'] {
   background: var(--surface);
 }
 
-.recap > p {
+.recap>p {
   margin-bottom: 4px;
 }
 
@@ -647,10 +663,12 @@ input[type='checkbox'] {
   background: color-mix(in srgb, var(--ask) 16%, transparent);
   color: var(--ask);
 }
+
 .badge-partial {
   background: color-mix(in srgb, var(--explain) 18%, transparent);
   color: var(--explain);
 }
+
 .badge-missed {
   background: color-mix(in srgb, var(--flag) 16%, transparent);
   color: var(--flag);
@@ -661,7 +679,7 @@ input[type='checkbox'] {
   padding-left: 18px;
 }
 
-.bullets li + li {
+.bullets li+li {
   margin-top: 3px;
 }
 
@@ -704,7 +722,9 @@ input[type='checkbox'] {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .pulse {
+
+  .pulse,
+  .nudge.fresh {
     animation: none;
   }
 }
