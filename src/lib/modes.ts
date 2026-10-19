@@ -1,4 +1,7 @@
-import type { MeetingMode } from './session/types';
+import type { Brief, BuiltInMode } from './session/types';
+
+/** Custom guidance goes into every live prompt, so keep it short for rate-limited providers. */
+export const MAX_CUSTOM_GUIDANCE = 500;
 
 export interface ModeDefinition {
   label: string;
@@ -9,7 +12,7 @@ export interface ModeDefinition {
   guidance: string;
 }
 
-export const MODES: Record<MeetingMode, ModeDefinition> = {
+export const MODES: Record<BuiltInMode, ModeDefinition> = {
   general: {
     label: 'General',
     goalHint: 'What do you want to walk away with?',
@@ -55,10 +58,26 @@ export const MODES: Record<MeetingMode, ModeDefinition> = {
   },
 };
 
-export const MODE_ORDER: MeetingMode[] = [
+export const MODE_ORDER: BuiltInMode[] = [
   'general',
   'interview',
   'one-on-one',
   'sales',
   'negotiation',
 ];
+
+/** The definition that applies to a brief, including a custom kind the user wrote. */
+export function describeMode(brief: Pick<Brief, 'mode' | 'custom'>): ModeDefinition {
+  if (brief.mode !== 'custom') return MODES[brief.mode] ?? MODES.general;
+
+  const label = brief.custom?.label.trim() || 'Custom';
+  const guidance = brief.custom?.guidance.trim().slice(0, MAX_CUSTOM_GUIDANCE);
+  return {
+    ...MODES.general,
+    label,
+    guidance: guidance
+      ? `The user calls this kind of meeting "${label}" and wrote these instructions for you:
+${guidance}`
+      : MODES.general.guidance,
+  };
+}

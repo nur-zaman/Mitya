@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { send } from '@/lib/messages';
-import { MODES } from '@/lib/modes';
+import { describeMode } from '@/lib/modes';
 import { archivedSessionItem, historyItem } from '@/lib/storage';
 import { useStorageItem } from '@/lib/use-storage';
 import { RecapPanel } from './RecapPanel';
@@ -30,7 +30,8 @@ export function HistoryView() {
           <button onClick={() => setOpenId(entry.id)}>
             <strong>{entry.title}</strong>
             <span className="muted">
-              {MODES[entry.mode].label} · {formatDate(entry.startedAt)}
+              {entry.modeLabel ?? describeMode({ mode: entry.mode, custom: null }).label} ·{' '}
+              {formatDate(entry.startedAt)}
               {entry.endedAt
                 ? ` · ${Math.round((entry.endedAt - entry.startedAt) / 60_000)} min`
                 : ''}

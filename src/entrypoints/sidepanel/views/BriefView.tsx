@@ -1,9 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
-import { CloseIcon } from '@/components/icons';
-import { MODE_ORDER, MODES } from '@/lib/modes';
+import { CloseIcon, PlusIcon } from '@/components/icons';
+import { describeMode, MAX_CUSTOM_GUIDANCE, MODE_ORDER, MODES } from '@/lib/modes';
 import { nameKey, uniqueNames, type PronunciationStore } from '@/lib/names';
-import type { AgendaItem, Brief } from '@/lib/session/types';
-import { briefItem, EMPTY_BRIEF, getBrief, pronunciationsItem } from '@/lib/storage';
+import type { AgendaItem, Brief, CustomMode } from '@/lib/session/types';
+import {
+  briefItem,
+  customModesItem,
+  EMPTY_BRIEF,
+  getBrief,
+  pronunciationsItem,
+} from '@/lib/storage';
 import { useStorageItem } from '@/lib/use-storage';
 
 export function BriefView() {
@@ -41,7 +47,7 @@ export function BriefView() {
     setDraftName('');
   }
 
-  const mode = MODES[brief.mode];
+  const mode = describeMode(brief);
 
   return (
     <div className="stack">
@@ -50,20 +56,7 @@ export function BriefView() {
         can edit it mid-call.
       </p>
 
-      <fieldset className="field">
-        <legend>Kind of meeting</legend>
-        <div className="chips">
-          {MODE_ORDER.map((id) => (
-            <button
-              key={id}
-              className={`chip ${brief.mode === id ? 'selected' : ''}`}
-              onClick={() => update({ mode: id })}
-            >
-              {MODES[id].label}
-            </button>
-          ))}
-        </div>
-      </fieldset>
+      <MeetingKind brief={brief} onChange={update} />
 
       <label className="field">
         <span>Title</span>
@@ -188,6 +181,112 @@ export function BriefView() {
         </button>
       </div>
     </div>
+  );
+}
+
+function MeetingKind(props: { brief: Brief; onChange: (patch: Partial<Brief>) => void }) {
+  const { brief, onChange } = props;
+  const saved = useStorageItem(customModesItem) ?? [];
+  const [created, setCreated] = useState<string | null>(null);
+  const custom = brief.mode === 'custom' ? brief.custom : null;
+
+  function saveKinds(kinds: CustomMode[]) {
+    void customModesItem.setValue(kinds);
+  }
+
+  // A kind that was started and left blank isn't worth keeping.
+  function leaveCustom(): CustomMode[] {
+    if (!custom || custom.label.trim() || custom.guidance.trim()) return saved;
+    const kept = saved.filter((kind) => kind.id !== custom.id);
+    saveKinds(kept);
+    return kept;
+  }
+
+  function choose(patch: Partial<Brief>) {
+    if (custom && patch.custom?.id !== custom.id) leaveCustom();
+    onChange(patch);
+  }
+
+  function create() {
+    const kind: CustomMode = { id: `k${Date.now().toString(36)}`, label: '', guidance: '' };
+    saveKinds([...leaveCustom(), kind]);
+    setCreated(kind.id);
+    onChange({ mode: 'custom', custom: kind });
+  }
+
+  function edit(patch: Partial<CustomMode>) {
+    if (!custom) return;
+    const next = { ...custom, ...patch };
+    const exists = saved.some((kind) => kind.id === next.id);
+    saveKinds(exists ? saved.map((kind) => (kind.id === next.id ? next : kind)) : [...saved, next]);
+    onChange({ custom: next });
+  }
+
+  function remove() {
+    if (!custom) return;
+    saveKinds(saved.filter((kind) => kind.id !== custom.id));
+    onChange({ mode: 'general', custom: null });
+  }
+
+  return (
+    <fieldset className="field">
+      <legend>Kind of meeting</legend>
+      <div className="chips">
+        {MODE_ORDER.map((id) => (
+          <button
+            key={id}
+            className={`chip ${brief.mode === id ? 'selected' : ''}`}
+            onClick={() => choose({ mode: id, custom: null })}
+          >
+            {MODES[id].label}
+          </button>
+        ))}
+        {saved.map((kind) => (
+          <button
+            key={kind.id}
+            className={`chip ${custom?.id === kind.id ? 'selected' : ''}`}
+            onClick={() => choose({ mode: 'custom', custom: kind })}
+          >
+            {(custom?.id === kind.id ? custom.label : kind.label).trim() || 'Untitled'}
+          </button>
+        ))}
+        {custom && !saved.some((kind) => kind.id === custom.id) && (
+          <button className="chip selected">{custom.label.trim() || 'Untitled'}</button>
+        )}
+        <button className="chip add" onClick={create}>
+          <PlusIcon /> New kind
+        </button>
+      </div>
+
+      {custom && (
+        <div className="custom-kind">
+          <input
+            value={custom.label}
+            aria-label="Name of this kind of meeting"
+            placeholder="Name it, e.g. Board update"
+            autoFocus={created === custom.id}
+            maxLength={40}
+            onChange={(e) => edit({ label: e.target.value })}
+          />
+          <textarea
+            rows={3}
+            value={custom.guidance}
+            aria-label="What Mitya should watch for"
+            placeholder="What should Mitya watch for? e.g. Flag numbers that don't match last quarter, and remind me to ask for a decision on hiring."
+            maxLength={MAX_CUSTOM_GUIDANCE}
+            onChange={(e) => edit({ guidance: e.target.value })}
+          />
+          <div className="row between">
+            <small className="muted">
+              Saved for next time · {custom.guidance.length}/{MAX_CUSTOM_GUIDANCE}
+            </small>
+            <button className="link danger" onClick={remove}>
+              Delete kind
+            </button>
+          </div>
+        </div>
+      )}
+    </fieldset>
   );
 }
 

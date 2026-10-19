@@ -1,7 +1,7 @@
 import { storage } from 'wxt/utils/storage';
 import { PROVIDER_ORDER, PROVIDERS, type ProviderId } from './llm/providers';
 import type { PronunciationStore } from './names';
-import type { Brief, Session, SessionSummary, Settings } from './session/types';
+import type { Brief, CustomMode, Session, SessionSummary, Settings } from './session/types';
 
 export const DEFAULT_SETTINGS: Settings = {
   provider: 'groq',
@@ -17,6 +17,7 @@ export const DEFAULT_SETTINGS: Settings = {
 
 export const EMPTY_BRIEF: Brief = {
   mode: 'general',
+  custom: null,
   title: '',
   goal: '',
   agenda: [],
@@ -31,6 +32,10 @@ export const settingsItem = storage.defineItem<Settings>('local:settings', {
 
 export const briefItem = storage.defineItem<Brief>('local:brief', {
   fallback: EMPTY_BRIEF,
+});
+
+export const customModesItem = storage.defineItem<CustomMode[]>('local:customModes', {
+  fallback: [],
 });
 
 export const pronunciationsItem = storage.defineItem<PronunciationStore>('local:pronunciations', {
@@ -70,7 +75,9 @@ export function normalizeSettings(stored: Partial<Settings>): Settings {
 }
 
 export function normalizeBrief(stored: Partial<Brief>): Brief {
-  return { ...EMPTY_BRIEF, ...stored, names: stored.names ?? [] };
+  const brief = { ...EMPTY_BRIEF, ...stored, names: stored.names ?? [] };
+  if (brief.mode === 'custom' && !brief.custom) brief.mode = 'general';
+  return brief;
 }
 
 export async function getBrief(): Promise<Brief> {

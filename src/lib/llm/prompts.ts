@@ -1,4 +1,4 @@
-import { MODES } from '../modes';
+import { describeMode } from '../modes';
 import { formatNames, sessionNames } from '../names';
 import type { Brief, Nudge, NudgeKind, Recap, Session, Utterance } from '../session/types';
 import type { ChatMessage, JsonSchemaFormat } from './types';
@@ -138,7 +138,7 @@ export function buildLiveMessages(
   now: number,
   budgetChars: number,
 ): ChatMessage[] {
-  const system = `${LIVE_SYSTEM.replace('{self}', selfLabel)}\n\nMeeting type guidance:\n${MODES[session.brief.mode].guidance}`;
+  const system = `${LIVE_SYSTEM.replace('{self}', selfLabel)}\n\nMeeting type guidance:\n${describeMode(session.brief).guidance}`;
 
   const previous = session.nudges.slice(-8);
   const names = formatNames(sessionNames(session, selfLabel));
@@ -196,7 +196,7 @@ export function buildHintMessages(names: string[]): ChatMessage[] {
 }
 
 function formatBrief(brief: Brief, maxContextChars: number): string {
-  const lines = [`Meeting type: ${MODES[brief.mode].label}`];
+  const lines = [`Meeting type: ${describeMode(brief).label}`];
   if (brief.title) lines.push(`Title: ${brief.title}`);
   lines.push(`User's goal: ${brief.goal || '(not stated)'}`);
   if (brief.agenda.length) {
