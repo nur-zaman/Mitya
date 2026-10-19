@@ -1,14 +1,16 @@
 /* Lives in a shadow root on top of Meet, which is dark. Always dark here. */
 
 .card {
-  --bg: rgb(28 27 25 / 0.94);
+  --bg: rgb(28 27 25 / 0.95);
   --line: rgb(255 255 255 / 0.09);
+  --hover: rgb(255 255 255 / 0.08);
   --ink: #f3f0ea;
-  --muted: #a9a399;
+  --muted: #aaa49a;
   --ask: #7fc8b4;
   --flag: #f0a57c;
   --remind: #a9b4f2;
   --explain: #d7c77a;
+  --ease: cubic-bezier(0.25, 1, 0.5, 1);
 
   /* WXT resets the shadow host, so the card has to set its own stacking. */
   position: fixed;
@@ -21,7 +23,9 @@
   color: var(--ink);
   border: 1px solid var(--line);
   border-radius: 14px;
-  box-shadow: 0 12px 32px rgb(0 0 0 / 0.35);
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 0.04) inset,
+    0 12px 32px rgb(0 0 0 / 0.35);
   backdrop-filter: blur(10px);
   font:
     13px/1.45 system-ui,
@@ -29,6 +33,7 @@
     'Segoe UI',
     Roboto,
     sans-serif;
+  -webkit-font-smoothing: antialiased;
   overflow: hidden;
   user-select: none;
   --mark-ink: #1c1b19;
@@ -43,7 +48,7 @@ header {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 9px 10px 9px 12px;
+  padding: 8px 8px 8px 12px;
   cursor: grab;
   color: var(--ink);
 }
@@ -54,6 +59,7 @@ header:active {
 
 .status {
   flex: 1;
+  min-width: 0;
   font-size: 12px;
   color: var(--muted);
   white-space: nowrap;
@@ -93,12 +99,15 @@ header:active {
 }
 
 .count {
-  font-size: 11px;
-  font-weight: 600;
-  padding: 1px 7px;
+  min-width: 18px;
+  padding: 1px 6px;
   border-radius: 99px;
   background: var(--ink);
   color: #1c1b19;
+  font-size: 11px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
 }
 
 button {
@@ -107,26 +116,38 @@ button {
   cursor: pointer;
 }
 
+button:focus-visible {
+  outline: 2px solid var(--ask);
+  outline-offset: 1px;
+}
+
 .icon {
-  width: 24px;
-  height: 24px;
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 26px;
+  height: 26px;
+  padding: 0;
   border: 0;
-  border-radius: 6px;
+  border-radius: 7px;
   background: transparent;
   color: var(--muted);
-  font-size: 16px;
-  line-height: 1;
+  transition:
+    background-color 150ms var(--ease),
+    color 150ms var(--ease);
 }
 
 .icon:hover {
-  background: var(--line);
+  background: var(--hover);
   color: var(--ink);
 }
 
 .hint {
-  margin: 0 12px 10px;
+  margin: 0;
+  padding: 0 12px 10px;
   color: var(--muted);
   font-size: 12px;
+  text-wrap: pretty;
 }
 
 .link {
@@ -135,26 +156,32 @@ button {
   background: none;
   color: var(--ink);
   text-decoration: underline;
-  text-underline-offset: 2px;
+  text-decoration-color: rgb(255 255 255 / 0.35);
+  text-underline-offset: 3px;
+}
+
+.link:hover {
+  text-decoration-color: currentColor;
 }
 
 .nudges {
   list-style: none;
   margin: 0;
-  padding: 0 8px;
+  padding: 0;
   overflow-y: auto;
   user-select: text;
 }
 
 .nudge {
   position: relative;
-  padding: 9px 30px 10px 10px;
+  padding: 10px 40px 11px 12px;
   border-top: 1px solid var(--line);
-  animation: arrive 260ms ease-out;
+  animation: arrive 260ms var(--ease);
 }
 
 .nudge p {
-  margin: 2px 0 0;
+  margin: 3px 0 0;
+  text-wrap: pretty;
 }
 
 .nudge .detail {
@@ -163,43 +190,56 @@ button {
 }
 
 .kind {
-  font-size: 10.5px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 650;
 }
 
-.kind-ask .kind {
-  color: var(--ask);
+.kind::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
 }
 
-.kind-flag .kind {
-  color: var(--flag);
+.kind-ask {
+  --kind-color: var(--ask);
 }
 
-.kind-remind .kind {
-  color: var(--remind);
+.kind-flag {
+  --kind-color: var(--flag);
 }
 
-.kind-explain .kind {
-  color: var(--explain);
+.kind-remind {
+  --kind-color: var(--remind);
+}
+
+.kind-explain {
+  --kind-color: var(--explain);
+}
+
+.nudge .kind {
+  color: var(--kind-color);
 }
 
 .dismiss {
   position: absolute;
-  top: 6px;
-  right: 2px;
+  top: 7px;
+  right: 8px;
 }
 
 .nudge.fresh {
   animation:
-    arrive 260ms ease-out,
-    glow 2.4s ease-out;
+    arrive 260ms var(--ease),
+    glow 2.4s var(--ease);
 }
 
 @keyframes glow {
   from {
-    background: rgb(255 255 255 / 0.08);
+    background: color-mix(in srgb, var(--kind-color) 12%, transparent);
   }
 }
 
@@ -224,6 +264,18 @@ footer button {
   background: var(--ink);
   color: #1c1b19;
   font-weight: 550;
+  transition:
+    background-color 150ms var(--ease),
+    border-color 150ms var(--ease),
+    transform 100ms var(--ease);
+}
+
+footer button:hover:not(:disabled) {
+  background: #ffffff;
+}
+
+footer button:active:not(:disabled) {
+  transform: translateY(1px);
 }
 
 footer button:disabled {
@@ -233,8 +285,12 @@ footer button:disabled {
 
 footer button.quiet {
   background: transparent;
-  border-color: var(--line);
+  border-color: rgb(255 255 255 / 0.14);
   color: var(--ink);
+}
+
+footer button.quiet:hover {
+  background: var(--hover);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -242,5 +298,10 @@ footer button.quiet {
   .nudge,
   .nudge.fresh {
     animation: none;
+  }
+
+  .icon,
+  footer button {
+    transition: none;
   }
 }

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { CloseIcon } from '@/components/icons';
 import { NUDGE_LABELS } from '@/lib/labels';
 import { send } from '@/lib/messages';
 import { nameKey, sessionNames } from '@/lib/names';
@@ -32,9 +33,9 @@ export function LiveView({ session, selfLabel }: { session: Session | null; self
       <SessionBar session={session} />
       {session.analysis.error && !ended && <p className="error">{session.analysis.error}</p>}
       {ended && <RecapPanel session={session} />}
-      <People session={session} selfLabel={selfLabel} />
-      <Agenda session={session} />
       <Nudges session={session} />
+      <Agenda session={session} />
+      <People session={session} selfLabel={selfLabel} />
       <Transcript session={session} />
     </div>
   );
@@ -73,7 +74,10 @@ function SessionBar({ session }: { session: Session }) {
           >
             {session.status === 'paused' ? 'Resume' : 'Pause'}
           </button>
-          <button className="button quiet" onClick={() => void send({ type: 'session:end' })}>
+          <button
+            className="button quiet end-call"
+            onClick={() => void send({ type: 'session:end' })}
+          >
             End
           </button>
         </div>
@@ -88,17 +92,22 @@ function People({ session, selfLabel }: { session: Session; selfLabel: string })
   if (!names.length) return null;
 
   return (
-    <ul className="people">
-      {names.map((name) => {
-        const hint = hints?.[nameKey(name)]?.hint;
-        return (
-          <li key={name}>
-            {name}
-            {hint && <span className="muted"> {hint}</span>}
-          </li>
-        );
-      })}
-    </ul>
+    <section>
+      <div className="section-head">
+        <h2>People</h2>
+      </div>
+      <ul className="people">
+        {names.map((name) => {
+          const hint = hints?.[nameKey(name)]?.hint;
+          return (
+            <li key={name}>
+              <span>{name}</span>
+              {hint && <span className="muted">{hint}</span>}
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }
 
@@ -169,9 +178,10 @@ function Nudges({ session }: { session: Session }) {
                   <button
                     className="icon-button small"
                     aria-label="Dismiss"
+                    title="Dismiss"
                     onClick={() => void send({ type: 'nudge:dismiss', id: nudge.id })}
                   >
-                    ×
+                    <CloseIcon />
                   </button>
                 )}
               </div>

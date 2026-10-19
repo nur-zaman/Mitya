@@ -1,8 +1,10 @@
 :root {
   --paper: #fbfaf7;
   --surface: #ffffff;
+  --hover: #f1eee8;
   --ink: #1d1c1a;
-  --muted: #736e66;
+  --ink-hover: #3a3834;
+  --muted: #6f6a62;
   --line: #e8e4dc;
   --line-strong: #d6d0c5;
   --accent: #1f6b58;
@@ -15,6 +17,8 @@
   --explain: #7a6a1c;
 
   --radius: 10px;
+  --radius-control: 8px;
+  --ease: cubic-bezier(0.25, 1, 0.5, 1);
   --mark-ink: #fbfaf7;
   color-scheme: light dark;
 }
@@ -23,7 +27,9 @@
   :root {
     --paper: #171614;
     --surface: #201f1c;
+    --hover: #2a2825;
     --ink: #eeeae3;
+    --ink-hover: #d6d1c8;
     --muted: #9b958b;
     --line: #2e2c28;
     --line-strong: #3d3a35;
@@ -54,12 +60,14 @@ body {
     'Segoe UI',
     Roboto,
     sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
 h2,
 h3 {
   margin: 0;
   font-weight: 600;
+  text-wrap: balance;
 }
 
 h2 {
@@ -67,17 +75,19 @@ h2 {
 }
 
 h3 {
-  margin-top: 14px;
+  margin: 16px 0 2px;
   font-size: 12px;
   color: var(--muted);
 }
 
 p {
   margin: 0;
+  text-wrap: pretty;
 }
 
 a {
   color: inherit;
+  text-underline-offset: 2px;
 }
 
 kbd {
@@ -88,6 +98,11 @@ kbd {
   font:
     12px ui-monospace,
     monospace;
+}
+
+small {
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 .muted {
@@ -102,10 +117,14 @@ kbd {
   color: var(--explain);
 }
 
+.ok {
+  color: var(--accent);
+}
+
 .account {
   padding: 7px 10px;
   border: 1px solid var(--line-strong);
-  border-radius: 8px;
+  border-radius: var(--radius-control);
   background: var(--surface);
 }
 
@@ -121,7 +140,7 @@ kbd {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 14px 16px 10px;
+  padding: 14px 12px 10px 16px;
   color: var(--ink);
 }
 
@@ -130,7 +149,7 @@ kbd {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  line-height: 1.25;
+  line-height: 1.3;
 }
 
 .title strong {
@@ -163,6 +182,7 @@ kbd {
 
 .status-busy::before {
   background: var(--explain);
+  animation: pulse 0.9s ease-in-out infinite;
 }
 
 .status-warn {
@@ -175,7 +195,7 @@ kbd {
 
 .tabs {
   display: flex;
-  gap: 18px;
+  gap: 20px;
   padding: 0 16px;
   border-bottom: 1px solid var(--line);
 }
@@ -189,6 +209,11 @@ kbd {
   font: inherit;
   font-weight: 500;
   cursor: pointer;
+  transition: color 150ms var(--ease);
+}
+
+.tabs button:hover {
+  color: var(--ink);
 }
 
 .tabs button.active {
@@ -197,12 +222,12 @@ kbd {
 }
 
 .live-dot {
-  position: absolute;
-  top: 9px;
-  right: -8px;
-  width: 5px;
-  height: 5px;
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-left: 6px;
   border-radius: 50%;
+  vertical-align: 1px;
   background: var(--ask);
 }
 
@@ -214,7 +239,7 @@ main {
 .stack {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 20px;
 }
 
 .row {
@@ -237,13 +262,20 @@ main {
 
 .page-title {
   font-size: 15px;
+  letter-spacing: -0.01em;
 }
 
 .section-head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
+  gap: 8px;
   margin-bottom: 8px;
+}
+
+.section-head .muted {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
 }
 
 .empty {
@@ -273,18 +305,36 @@ button {
 .button {
   padding: 6px 12px;
   border: 1px solid var(--ink);
-  border-radius: 8px;
+  border-radius: var(--radius-control);
   background: var(--ink);
   color: var(--paper);
   font-weight: 550;
   cursor: pointer;
   white-space: nowrap;
+  transition:
+    background-color 150ms var(--ease),
+    border-color 150ms var(--ease),
+    transform 100ms var(--ease);
+}
+
+.button:hover:not(:disabled) {
+  background: var(--ink-hover);
+  border-color: var(--ink-hover);
+}
+
+.button:active:not(:disabled) {
+  transform: translateY(1px);
 }
 
 .button.quiet {
   background: transparent;
   border-color: var(--line-strong);
   color: var(--ink);
+}
+
+.button.quiet:hover:not(:disabled) {
+  background: var(--hover);
+  border-color: var(--line-strong);
 }
 
 .button.small {
@@ -304,8 +354,14 @@ button {
   color: var(--ink);
   font-size: inherit;
   text-decoration: underline;
-  text-underline-offset: 2px;
+  text-decoration-color: var(--line-strong);
+  text-underline-offset: 3px;
   cursor: pointer;
+  transition: text-decoration-color 150ms var(--ease);
+}
+
+.link:hover {
+  text-decoration-color: currentColor;
 }
 
 .link.muted {
@@ -319,25 +375,30 @@ button {
 .icon-button {
   display: grid;
   place-items: center;
+  flex: none;
   width: 30px;
   height: 30px;
+  padding: 0;
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--radius-control);
   background: transparent;
   color: var(--muted);
   cursor: pointer;
+  transition:
+    background-color 150ms var(--ease),
+    color 150ms var(--ease);
 }
 
 .icon-button:hover,
 .icon-button.active {
-  background: var(--line);
+  background: var(--hover);
   color: var(--ink);
 }
 
 .icon-button.small {
-  width: 22px;
-  height: 22px;
-  font-size: 15px;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
 }
 
 .field {
@@ -357,6 +418,11 @@ button {
   font-weight: 600;
 }
 
+/* A legend sits outside the fieldset's flex flow, so the gap doesn't reach it. */
+.field > legend {
+  margin-bottom: 6px;
+}
+
 .field.narrow {
   max-width: 220px;
 }
@@ -365,6 +431,7 @@ button {
   flex-direction: row;
   align-items: center;
   gap: 8px;
+  cursor: pointer;
 }
 
 .field.checkbox span {
@@ -378,10 +445,29 @@ select {
   width: 100%;
   padding: 7px 10px;
   border: 1px solid var(--line-strong);
-  border-radius: 8px;
+  border-radius: var(--radius-control);
   background: var(--surface);
   color: var(--ink);
   font: inherit;
+  transition:
+    border-color 150ms var(--ease),
+    background-color 150ms var(--ease);
+}
+
+input:not([type='checkbox']):hover:not(:focus, :disabled),
+textarea:hover:not(:focus, :disabled),
+select:hover:not(:focus, :disabled) {
+  border-color: var(--muted);
+}
+
+input:disabled,
+select:disabled {
+  opacity: 0.55;
+}
+
+::placeholder {
+  color: var(--muted);
+  opacity: 0.85;
 }
 
 textarea {
@@ -391,7 +477,9 @@ textarea {
 input:focus-visible,
 textarea:focus-visible,
 select:focus-visible,
-button:focus-visible {
+button:focus-visible,
+a:focus-visible,
+summary:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
@@ -423,6 +511,13 @@ input[type='checkbox'] {
   background: transparent;
   color: var(--ink);
   cursor: pointer;
+  transition:
+    background-color 150ms var(--ease),
+    border-color 150ms var(--ease);
+}
+
+.chip:hover:not(.selected) {
+  background: var(--hover);
 }
 
 .chip.selected {
@@ -434,7 +529,7 @@ input[type='checkbox'] {
 .segmented {
   display: flex;
   border: 1px solid var(--line-strong);
-  border-radius: 8px;
+  border-radius: var(--radius-control);
   overflow: hidden;
 }
 
@@ -445,6 +540,15 @@ input[type='checkbox'] {
   background: transparent;
   color: var(--ink);
   cursor: pointer;
+  transition: background-color 150ms var(--ease);
+}
+
+.segmented button:hover:not(.selected) {
+  background: var(--hover);
+}
+
+.segmented button:focus-visible {
+  outline-offset: -2px;
 }
 
 .segmented button + button {
@@ -456,13 +560,19 @@ input[type='checkbox'] {
   color: var(--paper);
 }
 
-.agenda-edit {
+/* Editable lists in the brief: rows read as text until you point at them. */
+
+.agenda-edit,
+.names-edit {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+.agenda-edit {
   counter-reset: agenda;
 }
 
@@ -475,37 +585,57 @@ input[type='checkbox'] {
 
 .agenda-edit li::before {
   content: counter(agenda);
-  width: 16px;
+  flex: none;
+  width: 18px;
   color: var(--muted);
   font-size: 12px;
+  font-variant-numeric: tabular-nums;
   text-align: right;
 }
 
-p.hint {
-  margin: -2px 0 2px;
-  font-size: 12px;
+.agenda-edit input,
+.names-edit input {
+  border-color: transparent;
+  background: transparent;
 }
 
-.names-edit {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+.agenda-edit input:focus,
+.names-edit input:focus {
+  background: var(--surface);
+  border-color: var(--line-strong);
 }
 
 .names-edit li {
   display: grid;
   grid-template-columns: minmax(0, 2fr) minmax(0, 3fr) auto;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
 }
 
 .names-edit .name {
+  padding-left: 2px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.names-edit input::placeholder {
+  font-style: italic;
+}
+
+.inline-add input {
+  border-style: dashed;
+  background: transparent;
+}
+
+.inline-add input:focus {
+  border-style: solid;
+  background: var(--surface);
+}
+
+p.hint {
+  margin: -2px 0 4px;
+  font-size: 12px;
 }
 
 /* Live -------------------------------------------------------------------- */
@@ -513,24 +643,52 @@ p.hint {
 .session-bar {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding-bottom: 14px;
+  gap: 12px;
+  padding-bottom: 16px;
   border-bottom: 1px solid var(--line);
 }
 
 .session-bar > div:first-child {
   display: flex;
   flex-direction: column;
+  gap: 1px;
+}
+
+.session-bar strong {
+  font-size: 14px;
+  letter-spacing: -0.005em;
+}
+
+.session-bar .muted {
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.session-bar .row .end-call {
+  margin-left: auto;
 }
 
 .people {
   display: flex;
-  flex-wrap: wrap;
-  gap: 4px 14px;
+  flex-direction: column;
+  gap: 3px;
   margin: 0;
   padding: 0;
   list-style: none;
-  font-size: 13px;
+}
+
+.people li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.people .muted {
+  font-size: 12.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .checklist {
@@ -551,6 +709,10 @@ p.hint {
   margin-top: 3px;
 }
 
+.checklist span {
+  transition: color 150ms var(--ease);
+}
+
 .checklist input:checked + span {
   color: var(--muted);
   text-decoration: line-through;
@@ -567,29 +729,34 @@ p.hint {
 }
 
 .nudge {
-  padding: 10px 12px;
+  padding: 10px 8px 11px 12px;
   border: 1px solid var(--line);
-  border-left: 3px solid var(--kind-color, var(--line-strong));
   border-radius: var(--radius);
   background: var(--surface);
 }
 
 .nudge.fresh {
-  animation: glow 2.4s ease-out;
+  animation: arrive 2.4s var(--ease);
 }
 
-@keyframes glow {
+@keyframes arrive {
   from {
-    background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+    border-color: color-mix(in srgb, var(--kind-color) 45%, var(--line));
+    background: color-mix(in srgb, var(--kind-color) 9%, var(--surface));
   }
 }
 
 .nudge.dismissed {
-  opacity: 0.55;
+  background: transparent;
+  opacity: 0.6;
+}
+
+.nudge p {
+  padding-right: 4px;
 }
 
 .nudge p + p {
-  margin-top: 3px;
+  margin-top: 4px;
   font-size: 12.5px;
 }
 
@@ -597,8 +764,13 @@ p.hint {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 2px;
+  min-height: 24px;
+  margin: -3px 0 2px;
   font-size: 12px;
+}
+
+.nudge-head .muted {
+  font-variant-numeric: tabular-nums;
 }
 
 .nudge-head .icon-button {
@@ -606,11 +778,20 @@ p.hint {
 }
 
 .kind {
-  font-size: 10.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
   font-weight: 650;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
   color: var(--kind-color);
+}
+
+.kind::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
 }
 
 .kind-ask {
@@ -635,9 +816,16 @@ p.hint {
 }
 
 .transcript summary {
+  width: fit-content;
   font-weight: 600;
   font-size: 13px;
   cursor: pointer;
+}
+
+.transcript summary .muted {
+  margin-left: 4px;
+  font-weight: 400;
+  font-size: 12px;
 }
 
 .transcript-body {
@@ -681,14 +869,23 @@ p.hint {
 .recap-agenda li {
   display: flex;
   gap: 10px;
-  padding: 6px 0;
+  padding: 7px 0;
   border-top: 1px solid var(--line);
+}
+
+.recap-agenda strong {
+  font-weight: 550;
+}
+
+.recap-agenda p {
+  font-size: 12.5px;
 }
 
 .badge {
   flex: none;
-  width: 58px;
+  width: 60px;
   height: fit-content;
+  margin-top: 1px;
   padding: 1px 0;
   border-radius: 5px;
   font-size: 11px;
@@ -697,18 +894,18 @@ p.hint {
 }
 
 .badge-covered {
-  background: color-mix(in srgb, var(--ask) 16%, transparent);
-  color: var(--ask);
+  background: color-mix(in srgb, var(--ask) 14%, transparent);
+  color: color-mix(in srgb, var(--ask) 85%, var(--ink));
 }
 
 .badge-partial {
-  background: color-mix(in srgb, var(--explain) 18%, transparent);
-  color: var(--explain);
+  background: color-mix(in srgb, var(--explain) 16%, transparent);
+  color: color-mix(in srgb, var(--explain) 75%, var(--ink));
 }
 
 .badge-missed {
-  background: color-mix(in srgb, var(--flag) 16%, transparent);
-  color: var(--flag);
+  background: color-mix(in srgb, var(--flag) 14%, transparent);
+  color: color-mix(in srgb, var(--flag) 85%, var(--ink));
 }
 
 .bullets {
@@ -731,27 +928,38 @@ p.hint {
 }
 
 .history {
-  margin: 0;
+  display: flex;
+  flex-direction: column;
+  margin: 0 -8px;
   padding: 0;
   list-style: none;
+}
+
+.history li + li {
+  border-top: 1px solid var(--line);
 }
 
 .history button {
   display: flex;
   flex-direction: column;
+  gap: 1px;
   width: 100%;
-  padding: 10px 2px;
+  padding: 10px 8px;
   border: 0;
-  border-bottom: 1px solid var(--line);
+  border-radius: var(--radius-control);
   background: none;
   color: var(--ink);
   text-align: left;
   cursor: pointer;
+  transition: background-color 150ms var(--ease);
 }
 
-.history button:hover strong {
-  text-decoration: underline;
-  text-underline-offset: 2px;
+.history button:hover {
+  background: var(--hover);
+}
+
+.history strong {
+  font-weight: 550;
 }
 
 .history .muted {
@@ -759,7 +967,13 @@ p.hint {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  *,
+  *::before {
+    transition-duration: 0s !important;
+  }
+
   .pulse,
+  .status-busy::before,
   .nudge.fresh {
     animation: none;
   }
