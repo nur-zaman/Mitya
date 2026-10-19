@@ -5,14 +5,18 @@ import { completeJson, LlmError } from '@/lib/llm/client';
 import { resolveConnection } from '@/lib/llm/connection';
 import { PROVIDERS } from '@/lib/llm/providers';
 import {
+  buildHintMessages,
   buildLiveMessages,
   buildRecapMessages,
+  HINT_FORMAT,
   LIVE_FORMAT,
   RECAP_FORMAT,
+  type HintDraft,
   type LiveSuggestion,
   type RecapDraft,
 } from '@/lib/llm/prompts';
 import type { Message } from '@/lib/messages';
+import { MAX_NAMES, mergeHints, missingHints, sessionNames, uniqueNames } from '@/lib/names';
 import {
   applySuggestion,
   createSession,
@@ -27,25 +31,29 @@ import {
   archivedSessionItem,
   briefItem,
   currentSessionItem,
+  getBrief,
   getSettings,
   hasCredentials,
   historyItem,
+  normalizeBrief,
+  pronunciationsItem,
   settingsItem,
 } from '@/lib/storage';
 
 /** Recaps of a few lines aren't worth an API call. */
 const MIN_UTTERANCES_FOR_RECAP = 3;
 
+const HINT_DEBOUNCE_MS = 1500;
+
 export default defineBackground(() => {
-  // The worker can be stopped at any time; the session is cached here and
-  // reloaded from storage on the next event.
   let cached: Session | null | undefined;
   let saveTimer: ReturnType<typeof setTimeout> | undefined;
   let retryTimer: ReturnType<typeof setTimeout> | undefined;
+  let hintTimer: ReturnType<typeof setTimeout> | undefined;
+  let hintsRunning = false;
   let pendingTurn = false;
   let queue: Promise<unknown> = Promise.resolve();
 
-  /** Runs session changes one at a time so concurrent events can't interleave. */
   function serial<T>(task: () => Promise<T>): Promise<T> {
     const next = queue.then(task, task);
     queue = next.catch(() => undefined);
@@ -78,7 +86,7 @@ export default defineBackground(() => {
     if (!belongsHere) {
       if (session && session.status !== 'ended') await endSession(session);
       session = createSession({
-        brief: await briefItem.getValue(),
+        brief: await getBrief(),
         meetingCode: message.meetingCode,
         tabId,
         now: Date.now(),
@@ -90,8 +98,11 @@ export default defineBackground(() => {
     // The same call open in two tabs would double every line; stick with the first.
     if (session.tabId !== null && tabId !== null && session.tabId !== tabId) return;
     session.tabId ??= tabId;
+    const speaker = message.utterance.speaker;
+    const newSpeaker = !session.utterances.some((u) => u.speaker === speaker);
     upsertUtterance(session, message.utterance, settings.selfLabel);
     scheduleSave();
+    if (newSpeaker) scheduleHints();
     await maybeAnalyze();
   }
 
@@ -210,6 +221,54 @@ export default defineBackground(() => {
         s.recapState = 'error';
         s.recapError = describe(error);
       });
+    }
+  }
+
+
+  function scheduleHints(): void {
+    clearTimeout(hintTimer);
+    hintTimer = setTimeout(() => void refreshHints(), HINT_DEBOUNCE_MS);
+  }
+
+
+  async function refreshHints(): Promise<void> {
+    if (hintsRunning) return;
+    const settings = await getSettings();
+    if (!hasCredentials(settings)) return;
+
+    const session = await load();
+    const live = session && session.status !== 'ended' ? session : null;
+    if (live?.analysis.running) return;
+    if ((live?.analysis.cooldownUntil ?? 0) > Date.now()) return;
+
+    const names = live
+      ? sessionNames(live, settings.selfLabel)
+      : uniqueNames((await getBrief()).names);
+    const missing = missingHints(names, await pronunciationsItem.getValue()).slice(0, MAX_NAMES);
+    if (!missing.length) return;
+
+    hintsRunning = true;
+    try {
+      const connection = await resolveConnection(settings);
+      const draft = await completeJson<HintDraft>(connection, {
+        messages: buildHintMessages(missing),
+        format: HINT_FORMAT,
+        maxTokens: 1024,
+      });
+      const store = await pronunciationsItem.getValue();
+      await pronunciationsItem.setValue(mergeHints(store, missing, draft.hints));
+    } catch (error) {
+      console.debug('[mitya] pronunciation hints failed', error);
+      if (error instanceof LlmError && error.status === 429) {
+        const until = Date.now() + (error.retryAfterMs ?? 30_000);
+        await serial(() =>
+          withCurrent((s) => {
+            if (s.status !== 'ended') s.analysis.cooldownUntil = until;
+          }),
+        );
+      }
+    } finally {
+      hintsRunning = false;
     }
   }
 
@@ -374,12 +433,14 @@ export default defineBackground(() => {
     );
   });
 
-  briefItem.watch((brief) => {
+  briefItem.watch((stored) => {
+    const brief = normalizeBrief(stored);
     void serial(() =>
       withCurrent((s) => {
         if (s.status !== 'ended') replaceBrief(s, brief);
       }),
     );
+    scheduleHints();
   });
 
   void browser.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });

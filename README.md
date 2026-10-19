@@ -17,6 +17,7 @@
   - **Remind**: you're drifting, running out of time, or skipping an agenda item.
   - **Explain**: a term you might not know, in one plain sentence.
 - **You tell it what the meeting is for.** Before the call, write a short brief: the kind of meeting (interview, 1:1, discovery call, negotiation, general), your goal, an agenda, and any background you have, like a job description or CV.
+- **It spells names right.** List the people and terms you expect in the brief. Mitya adds everyone it sees in the captions, uses those spellings even when the captions garble them, and suggests how to say each name.
 - **Agenda items tick themselves off** as they come up in conversation.
 - **You get a recap when the call ends**: a summary, agenda coverage, key points, things to verify, and follow-ups. Copy it or download it as Markdown.
 - **It stays out of the way.** A small draggable card floats over Meet. The full view lives in Chrome's side panel, which doesn't show up when you share a tab.

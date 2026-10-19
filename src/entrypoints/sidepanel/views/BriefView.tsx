@@ -1,15 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
 import { MODE_ORDER, MODES } from '@/lib/modes';
+import { nameKey, uniqueNames, type PronunciationStore } from '@/lib/names';
 import type { AgendaItem, Brief } from '@/lib/session/types';
-import { briefItem, EMPTY_BRIEF } from '@/lib/storage';
+import { briefItem, EMPTY_BRIEF, getBrief, pronunciationsItem } from '@/lib/storage';
+import { useStorageItem } from '@/lib/use-storage';
 
 export function BriefView() {
   const [brief, setBrief] = useState<Brief | null>(null);
   const [draftItem, setDraftItem] = useState('');
+  const [draftName, setDraftName] = useState('');
+  const hints = useStorageItem(pronunciationsItem);
   const saveTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
-    void briefItem.getValue().then(setBrief);
+    void getBrief().then(setBrief);
   }, []);
 
   if (!brief) return null;
@@ -28,6 +32,12 @@ export function BriefView() {
     if (!text) return;
     update({ agenda: [...current.agenda, { id: nextAgendaId(current.agenda), text }] });
     setDraftItem('');
+  }
+
+  function addName() {
+    const names = uniqueNames([...current.names, ...draftName.split(',')]);
+    if (names.length !== current.names.length) update({ names });
+    setDraftName('');
   }
 
   const mode = MODES[brief.mode];
@@ -111,6 +121,39 @@ export function BriefView() {
         </div>
       </div>
 
+      <div className="field">
+        <span>Names</span>
+        <p className="hint muted">
+          People and terms Mitya should spell right. It suggests how to say each one; fix any it
+          gets wrong.
+        </p>
+        {brief.names.length > 0 && (
+          <ul className="names-edit">
+            {brief.names.map((name) => (
+              <li key={name}>
+                <span className="name">{name}</span>
+                <HintInput name={name} hints={hints} />
+                <button
+                  className="icon-button small"
+                  aria-label={`Remove ${name}`}
+                  onClick={() => update({ names: brief.names.filter((n) => n !== name) })}
+                >
+                  ×
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="inline-add">
+          <input
+            value={draftName}
+            onChange={(e) => setDraftName(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && addName()}
+            placeholder="Add a name or term and press Enter"
+          />
+        </div>
+      </div>
+
       <label className="field">
         <span>Background</span>
         <textarea
@@ -144,6 +187,31 @@ export function BriefView() {
         </button>
       </div>
     </div>
+  );
+}
+
+function HintInput({ name, hints }: { name: string; hints: PronunciationStore | undefined }) {
+  const saved = hints?.[nameKey(name)];
+  const [draft, setDraft] = useState<string | null>(null);
+
+  async function commit() {
+    if (draft === null) return;
+    const value = draft.trim();
+    setDraft(null);
+    if (value === (saved?.hint ?? '')) return;
+    const store = await pronunciationsItem.getValue();
+    await pronunciationsItem.setValue({ ...store, [nameKey(name)]: { hint: value, byUser: true } });
+  }
+
+  return (
+    <input
+      value={draft ?? saved?.hint ?? ''}
+      aria-label={`How to say ${name}`}
+      placeholder={saved ? 'no hint needed' : 'how to say it'}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={() => void commit()}
+      onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
+    />
   );
 }
 

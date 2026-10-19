@@ -481,6 +481,33 @@ input[type='checkbox'] {
   text-align: right;
 }
 
+p.hint {
+  margin: -2px 0 2px;
+  font-size: 12px;
+}
+
+.names-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.names-edit li {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr) auto;
+  align-items: center;
+  gap: 6px;
+}
+
+.names-edit .name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* Live -------------------------------------------------------------------- */
 
 .session-bar {
@@ -494,6 +521,16 @@ input[type='checkbox'] {
 .session-bar>div:first-child {
   display: flex;
   flex-direction: column;
+}
+
+.people {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
 }
 
 .checklist {
