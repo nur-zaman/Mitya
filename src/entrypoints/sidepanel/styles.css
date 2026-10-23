@@ -260,7 +260,7 @@ main {
   padding-left: 18px;
 }
 
-.empty li+li {
+.empty li + li {
   margin-top: 4px;
 }
 
@@ -350,8 +350,8 @@ button {
   min-width: 0;
 }
 
-.field>span,
-.field>legend {
+.field > span,
+.field > legend {
   padding: 0;
   font-size: 12px;
   font-weight: 600;
@@ -447,7 +447,7 @@ input[type='checkbox'] {
   cursor: pointer;
 }
 
-.segmented button+button {
+.segmented button + button {
   border-left: 1px solid var(--line-strong);
 }
 
@@ -518,7 +518,7 @@ p.hint {
   border-bottom: 1px solid var(--line);
 }
 
-.session-bar>div:first-child {
+.session-bar > div:first-child {
   display: flex;
   flex-direction: column;
 }
@@ -551,7 +551,7 @@ p.hint {
   margin-top: 3px;
 }
 
-.checklist input:checked+span {
+.checklist input:checked + span {
   color: var(--muted);
   text-decoration: line-through;
   text-decoration-color: var(--line-strong);
@@ -588,7 +588,7 @@ p.hint {
   opacity: 0.55;
 }
 
-.nudge p+p {
+.nudge p + p {
   margin-top: 3px;
   font-size: 12.5px;
 }
@@ -668,7 +668,7 @@ p.hint {
   background: var(--surface);
 }
 
-.recap>p {
+.recap > p {
   margin-bottom: 4px;
 }
 
@@ -716,7 +716,7 @@ p.hint {
   padding-left: 18px;
 }
 
-.bullets li+li {
+.bullets li + li {
   margin-top: 3px;
 }
 
@@ -759,7 +759,6 @@ p.hint {
 }
 
 @media (prefers-reduced-motion: reduce) {
-
   .pulse,
   .nudge.fresh {
     animation: none;

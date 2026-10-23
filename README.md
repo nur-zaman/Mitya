@@ -6,8 +6,6 @@
 
 <p align="center">A quiet co-pilot for Google Meet. It reads the live captions and,<br />now and then, slips you a note. Usually a question to ask, or a claim you should check before nodding along.</p>
 
-
-
 ## What it does
 
 - **It reads Meet's own captions.** There's no audio capture and no bot in the call. If captions are on, Mitya can follow along.
@@ -28,12 +26,12 @@ Mitya waits for the other person to finish talking before it thinks about anythi
 
 Pick one in settings.
 
-| Provider                                            | Sign-in              | Notes                                                                                                                                          |
-| --------------------------------------------------- | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Provider                                            | Sign-in              | Notes                                                                                                                               |
+| --------------------------------------------------- | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | [Groq](https://console.groq.com/keys)               | API key              | Free tier, and very fast. The free tier tops out around 8K tokens a minute, so Mitya keeps prompts short and spaces out its checks. |
-| [Claude](https://platform.claude.com/settings/keys) | API key              | Anthropic API, billed per use.                                                                                                                 |
-| ChatGPT                                             | Your ChatGPT account | **Experimental.** See below.                                                                                                                   |
-| [OpenAI](https://platform.openai.com/api-keys)      | API key              | Official API, billed per use.                                                                                                                  |
+| [Claude](https://platform.claude.com/settings/keys) | API key              | Anthropic API, billed per use.                                                                                                      |
+| ChatGPT                                             | Your ChatGPT account | **Experimental.** See below.                                                                                                        |
+| [OpenAI](https://platform.openai.com/api-keys)      | API key              | Official API, billed per use.                                                                                                       |
 
 For each provider you choose the model and, if the model supports it, how much it **thinks** before answering. Keep that low during a live call. A great note that shows up two minutes late is no use to anyone. **Fast mode** asks for faster processing where the provider offers it (Claude Opus models, ChatGPT, and OpenAI). It's quicker, but it costs more or eats more of your plan.
 

@@ -1,7 +1,5 @@
 import type { Session } from './session/types';
 
-
-
 export const MAX_NAMES = 30;
 export const MAX_NAMES_CHARS = 600;
 
@@ -37,7 +35,6 @@ export function uniqueNames(names: string[], exclude: string[] = []): string[] {
 export function missingHints(names: string[], store: PronunciationStore): string[] {
   return names.filter((name) => !(nameKey(name) in store));
 }
-
 
 export function mergeHints(
   store: PronunciationStore,

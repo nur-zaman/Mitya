@@ -224,12 +224,10 @@ export default defineBackground(() => {
     }
   }
 
-
   function scheduleHints(): void {
     clearTimeout(hintTimer);
     hintTimer = setTimeout(() => void refreshHints(), HINT_DEBOUNCE_MS);
   }
-
 
   async function refreshHints(): Promise<void> {
     if (hintsRunning) return;

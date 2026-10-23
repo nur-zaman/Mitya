@@ -3,7 +3,6 @@ import { PROVIDER_ORDER, PROVIDERS, type ProviderId } from './llm/providers';
 import type { PronunciationStore } from './names';
 import type { Brief, Session, SessionSummary, Settings } from './session/types';
 
-
 export const DEFAULT_SETTINGS: Settings = {
   provider: 'groq',
   apiKeys: perProvider(() => ''),
@@ -58,7 +57,6 @@ export function archivedSessionItem(id: string) {
 export async function getSettings(): Promise<Settings> {
   return normalizeSettings(await settingsItem.getValue());
 }
-
 
 export function normalizeSettings(stored: Partial<Settings>): Settings {
   return {
