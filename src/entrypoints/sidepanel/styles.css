@@ -418,7 +418,6 @@ button {
   font-weight: 600;
 }
 
-/* A legend sits outside the fieldset's flex flow, so the gap doesn't reach it. */
 .field > legend {
   margin-bottom: 6px;
 }
@@ -559,8 +558,6 @@ input[type='checkbox'] {
   background: var(--ink);
   color: var(--paper);
 }
-
-/* Editable lists in the brief: rows read as text until you point at them. */
 
 .agenda-edit,
 .names-edit {

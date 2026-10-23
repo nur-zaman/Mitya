@@ -1,5 +1,3 @@
-/** Small stroke icons shared by the side panel and the Meet card. */
-
 export function CloseIcon({ size = 14 }: { size?: number }) {
   return (
     <svg
