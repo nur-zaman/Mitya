@@ -1,7 +1,7 @@
 import { browser, type Browser } from 'wxt/browser';
 import { defineBackground } from 'wxt/utils/define-background';
 import { handleRedirect, signOut, startSignIn } from '@/lib/llm/chatgpt-auth';
-import { completeJson, LlmError } from '@/lib/llm/client';
+import { completeJson, LlmError, type Usage } from '@/lib/llm/client';
 import { resolveConnection } from '@/lib/llm/connection';
 import { PROVIDERS } from '@/lib/llm/providers';
 import {
@@ -147,7 +147,6 @@ export default defineBackground(() => {
     const session = await load();
     if (!session || session.status === 'ended' || session.analysis.running) return;
 
-    // Claim the run before awaiting anything else so a second trigger can't slip in.
     pendingTurn = false;
     session.analysis.running = true;
     session.analysis.error = null;
@@ -155,6 +154,7 @@ export default defineBackground(() => {
     scheduleSave(true);
 
     const startedAt = Date.now();
+    let usage: Usage | null = null;
     try {
       const settings = await getSettings();
       const connection = await resolveConnection(settings);
@@ -166,6 +166,7 @@ export default defineBackground(() => {
           connection.provider.livePromptChars,
         ),
         format: LIVE_FORMAT,
+        onUsage: (reported) => (usage = reported),
       });
       await serial(async () => {
         const current = await load();
@@ -174,6 +175,7 @@ export default defineBackground(() => {
         current.analysis.running = false;
         current.analysis.cooldownUntil = null;
         current.analysis.lastRunAt = startedAt;
+        current.analysis.usage = usage;
         scheduleSave(true);
       });
     } catch (error) {

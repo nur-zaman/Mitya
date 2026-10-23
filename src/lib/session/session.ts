@@ -27,6 +27,7 @@ export function createSession(options: {
       lastRunWords: 0,
       cooldownUntil: null,
       error: null,
+      usage: null,
     },
     recap: null,
     recapState: 'none',

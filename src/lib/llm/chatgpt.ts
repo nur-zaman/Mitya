@@ -1,17 +1,24 @@
-import { LlmError, type ChatMessage, type Connection, type JsonSchemaFormat } from './types';
+import {
+  LlmError,
+  type ChatMessage,
+  type Connection,
+  type JsonSchemaFormat,
+  type Usage,
+} from './types';
 import type { ModelInfo } from './providers';
 
-/*
- * Talks to the Responses endpoint behind ChatGPT's Codex backend. It always
- * streams (server-sent events), so we read the stream and keep the final text.
- */
 
-/** The backend hides models from clients it considers too old. */
 const CLIENT_VERSION = '0.160.0';
+
+let contextWindows: Promise<Map<string, number>> | null = null;
 
 export async function completeChatGptJson(
   connection: Connection,
-  options: { messages: ChatMessage[]; format: JsonSchemaFormat },
+  options: {
+    messages: ChatMessage[];
+    format: JsonSchemaFormat;
+    onUsage?: (usage: Usage) => void;
+  },
 ): Promise<string> {
   const system = options.messages
     .filter((m) => m.role === 'system')
@@ -48,7 +55,11 @@ export async function completeChatGptJson(
   });
   if (!response.ok) throw await toError(response);
 
-  return readOutputText(response);
+  const { text, tokens } = await readOutput(response);
+  if (options.onUsage && tokens) {
+    options.onUsage({ ...tokens, contextWindow: await contextWindow(connection) });
+  }
+  return text;
 }
 
 export async function listChatGptModels(connection: Connection): Promise<ModelInfo[]> {
@@ -65,6 +76,7 @@ export async function listChatGptModels(connection: Connection): Promise<ModelIn
       visibility?: string;
       default_reasoning_level?: string;
       supported_reasoning_levels?: { effort: string }[];
+      context_window?: number | null;
     }[];
   };
 
@@ -75,7 +87,21 @@ export async function listChatGptModels(connection: Connection): Promise<ModelIn
       label: m.display_name ?? m.slug,
       thinking: (m.supported_reasoning_levels ?? []).map((level) => level.effort),
       defaultThinking: m.default_reasoning_level ?? null,
+      contextWindow: m.context_window ?? undefined,
     }));
+}
+
+async function contextWindow(connection: Connection): Promise<number | null> {
+  contextWindows ??= listChatGptModels(connection)
+    .then(
+      (models) =>
+        new Map(models.flatMap((m) => (m.contextWindow ? [[m.id, m.contextWindow]] : []))),
+    )
+    .catch(() => {
+      contextWindows = null;
+      return new Map();
+    });
+  return (await contextWindows).get(connection.model) ?? null;
 }
 
 function headers(connection: Connection): Record<string, string> {
@@ -88,12 +114,15 @@ function headers(connection: Connection): Record<string, string> {
   };
 }
 
-async function readOutputText(response: Response): Promise<string> {
+async function readOutput(
+  response: Response,
+): Promise<{ text: string; tokens: Omit<Usage, 'contextWindow'> | null }> {
   const reader = response.body!.pipeThrough(new TextDecoderStream()).getReader();
   let buffer = '';
   let text = '';
+  let tokens: Omit<Usage, 'contextWindow'> | null = null;
 
-  for (;;) {
+  for (; ;) {
     const { value, done } = await reader.read();
     if (done) break;
     buffer += value;
@@ -113,9 +142,16 @@ async function readOutputText(response: Response): Promise<string> {
       const parsed = JSON.parse(data) as {
         type: string;
         delta?: string;
-        response?: { error?: { message?: string } };
+        response?: {
+          error?: { message?: string };
+          usage?: { input_tokens?: number; output_tokens?: number };
+        };
       };
       if (parsed.type === 'response.output_text.delta' && parsed.delta) text += parsed.delta;
+      if (parsed.type === 'response.completed' && parsed.response?.usage) {
+        const { input_tokens = 0, output_tokens = 0 } = parsed.response.usage;
+        tokens = { inputTokens: input_tokens, outputTokens: output_tokens };
+      }
       if (parsed.type === 'response.failed' || parsed.type === 'error') {
         throw new LlmError(parsed.response?.error?.message ?? 'ChatGPT request failed', 0);
       }
@@ -123,7 +159,7 @@ async function readOutputText(response: Response): Promise<string> {
   }
 
   if (!text) throw new LlmError('ChatGPT returned an empty response', 0);
-  return text;
+  return { text, tokens };
 }
 
 async function toError(response: Response): Promise<LlmError> {

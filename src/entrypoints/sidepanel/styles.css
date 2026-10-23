@@ -658,8 +658,6 @@ p.hint {
   font-size: 12px;
 }
 
-/* Live -------------------------------------------------------------------- */
-
 .session-bar {
   display: flex;
   flex-direction: column;
@@ -686,6 +684,32 @@ p.hint {
 
 .session-bar .row .end-call {
   margin-left: auto;
+}
+
+.context-meter {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12.5px;
+}
+
+.context-meter-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.context-meter-track {
+  height: 3px;
+  border-radius: 2px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.context-meter-track > div {
+  height: 100%;
+  background: var(--accent);
+  transition: width 300ms var(--ease);
 }
 
 .people {
