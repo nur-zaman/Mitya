@@ -10,18 +10,19 @@ export interface JsonSchemaFormat {
   schema: Record<string, unknown>;
 }
 
-/** Everything needed to make one request: where, as whom, and how. */
 export interface Connection {
   provider: Provider;
   model: string;
-  /** API key, or a ChatGPT access token. */
   token: string;
-  /** ChatGPT workspace id; only set for the ChatGPT provider. */
   accountId?: string;
-  /** Reasoning effort, or null for the model's default. */
   thinking: string | null;
-  /** Ask for the provider's priority tier where it has one. */
   fast: boolean;
+}
+
+export interface Usage {
+  inputTokens: number;
+  outputTokens: number;
+  contextWindow: number | null;
 }
 
 export class LlmError extends Error {

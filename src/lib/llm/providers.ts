@@ -3,26 +3,17 @@ export type ProviderId = 'groq' | 'anthropic' | 'chatgpt' | 'openai';
 export interface Provider {
   id: ProviderId;
   label: string;
-  /** `key` providers take a pasted API key; `chatgpt` signs in with a ChatGPT account. */
   auth: 'key' | 'chatgpt';
-  /** Which wire format the provider speaks. */
   api: 'openai-chat' | 'chatgpt' | 'anthropic';
   baseUrl: string;
   defaultModel: string;
   keyUrl: string;
   keyPrefix: string;
   blurb: string;
-  /** Origins requested at runtime the first time this provider is picked. */
   origins: string[];
-  /** Whether the provider has a paid low-latency tier we can switch on. */
   fastTier: boolean;
-  /**
-   * Rough ceiling for a live prompt, in characters (~4 per token). Free tiers
-   * meter tokens per minute, so smaller prompts mean more suggestions.
-   */
   livePromptChars: number;
   recapPromptChars: number;
-  /** Floor between live calls, on top of the sensitivity setting. */
   minGapMs: number;
 }
 
@@ -39,7 +30,6 @@ export const PROVIDERS: Record<ProviderId, Provider> = {
     blurb: 'Free tier, very fast. Mitya paces itself to stay inside the limits.',
     origins: ['https://api.groq.com/*'],
     fastTier: false,
-    // The free tier allows ~8k tokens a minute, so keep each call near 3k.
     livePromptChars: 11_000,
     recapPromptChars: 26_000,
     minGapMs: 20_000,
@@ -100,12 +90,11 @@ export const PROVIDER_ORDER: ProviderId[] = ['groq', 'anthropic', 'chatgpt', 'op
 export interface ModelInfo {
   id: string;
   label: string;
-  /** Reasoning levels the model accepts, in order. Empty when it can't be tuned. */
   thinking: string[];
   defaultThinking: string | null;
+  contextWindow?: number;
 }
 
-/** Best guess at a model's reasoning options when the provider doesn't list them. */
 export function inferModelInfo(provider: ProviderId, id: string): ModelInfo {
   const info = (thinking: string[], defaultThinking: string | null): ModelInfo => ({
     id,
@@ -115,7 +104,6 @@ export function inferModelInfo(provider: ProviderId, id: string): ModelInfo {
   });
 
   if (provider === 'anthropic') {
-    // Effort works on the 4.6 generation and newer.
     const tunable = !/claude-(3|haiku-4|sonnet-4-5|opus-4-[0-5])/.test(id);
     return tunable ? info(['low', 'medium', 'high', 'xhigh', 'max'], 'low') : info([], null);
   }
@@ -126,16 +114,11 @@ export function inferModelInfo(provider: ProviderId, id: string): ModelInfo {
   return info([], null);
 }
 
-/**
- * Models that accept a strict JSON schema. Anything else falls back to JSON
- * mode with the schema described in the prompt.
- */
 export function supportsStrictSchema(provider: ProviderId, model: string): boolean {
   if (provider !== 'groq') return true;
   return /gpt-oss|qwen/.test(model) && !model.includes('safeguard');
 }
 
-/** Hides models that can't chat: speech, guards, embeddings, images. */
 export function isChatModel(model: string): boolean {
   return !/whisper|guard|orpheus|tts|playai|distil|embedding|dall-e|image|audio|realtime|transcribe|moderation|search|computer-use/i.test(
     model,

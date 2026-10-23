@@ -1,4 +1,5 @@
 import type { ProviderId } from '../llm/providers';
+import type { Usage } from '../llm/types';
 
 export type BuiltInMode = 'general' | 'interview' | 'one-on-one' | 'sales' | 'negotiation';
 export type MeetingMode = BuiltInMode | 'custom';
@@ -64,6 +65,7 @@ export interface AnalysisState {
   lastRunWords: number;
   cooldownUntil: number | null;
   error: string | null;
+  usage: Usage | null;
 }
 
 export interface Session {

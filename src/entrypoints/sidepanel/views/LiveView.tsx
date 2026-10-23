@@ -82,6 +82,35 @@ function SessionBar({ session }: { session: Session }) {
           </button>
         </div>
       )}
+      <ContextMeter session={session} />
+    </div>
+  );
+}
+
+function ContextMeter({ session }: { session: Session }) {
+  const usage = session.analysis.usage;
+  if (!usage) return null;
+  const { inputTokens, outputTokens, contextWindow } = usage;
+  const share = contextWindow ? inputTokens / contextWindow : null;
+
+  return (
+    <div
+      className="context-meter"
+      title={`Last suggestion: ${inputTokens.toLocaleString()} tokens in, ${outputTokens.toLocaleString()} out`}
+    >
+      <div className="context-meter-label">
+        <span>Context</span>
+        <span className="muted">
+          {share === null
+            ? `${tokenCount(inputTokens)} tokens`
+            : `${tokenCount(inputTokens)} of ${tokenCount(contextWindow!)} · ${percent(share)}`}
+        </span>
+      </div>
+      {share !== null && (
+        <div className="context-meter-track">
+          <div style={{ width: `${Math.min(100, share * 100)}%` }} />
+        </div>
+      )}
     </div>
   );
 }
@@ -230,6 +259,16 @@ function useElapsed(startedAt: number, endedAt: number | null): string {
   }, [endedAt]);
   const minutes = Math.max(0, Math.round(((endedAt ?? now) - startedAt) / 60_000));
   return `${minutes} min`;
+}
+
+function tokenCount(n: number): string {
+  if (n < 1000) return String(n);
+  return `${(n / 1000).toFixed(n < 10_000 ? 1 : 0)}k`;
+}
+
+function percent(share: number): string {
+  if (share > 0 && share < 0.01) return '<1%';
+  return `${Math.round(share * 100)}%`;
 }
 
 function clock(ms: number): string {

@@ -1,15 +1,16 @@
 import { completeClaudeJson, listClaudeModels } from './anthropic';
 import { completeChatGptJson, listChatGptModels } from './chatgpt';
 import { inferModelInfo, isChatModel, supportsStrictSchema, type ModelInfo } from './providers';
-import { LlmError, type ChatMessage, type Connection, type JsonSchemaFormat } from './types';
+import {
+  LlmError,
+  type ChatMessage,
+  type Connection,
+  type JsonSchemaFormat,
+  type Usage,
+} from './types';
 
 export { LlmError };
-export type { ChatMessage, Connection, JsonSchemaFormat };
-
-/*
- * One entry point for every provider. Groq and OpenAI share the OpenAI
- * chat-completions dialect; Claude and ChatGPT sign-in have their own modules.
- */
+export type { ChatMessage, Connection, JsonSchemaFormat, Usage };
 
 export async function listModels(connection: Connection): Promise<ModelInfo[]> {
   if (connection.provider.api === 'chatgpt') return listChatGptModels(connection);
@@ -24,10 +25,14 @@ export async function listModels(connection: Connection): Promise<ModelInfo[]> {
     .map((id) => inferModelInfo(connection.provider.id, id));
 }
 
-/** Sends a chat completion that must come back as JSON matching `format`. */
 export async function completeJson<T>(
   connection: Connection,
-  options: { messages: ChatMessage[]; format: JsonSchemaFormat; maxTokens?: number },
+  options: {
+    messages: ChatMessage[];
+    format: JsonSchemaFormat;
+    maxTokens?: number;
+    onUsage?: (usage: Usage) => void;
+  },
 ): Promise<T> {
   const complete = {
     chatgpt: completeChatGptJson,
