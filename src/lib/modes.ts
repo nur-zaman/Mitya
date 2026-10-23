@@ -1,6 +1,5 @@
 import type { Brief, BuiltInMode } from './session/types';
 
-/** Custom guidance goes into every live prompt, so keep it short for rate-limited providers. */
 export const MAX_CUSTOM_GUIDANCE = 500;
 
 export interface ModeDefinition {
@@ -66,7 +65,6 @@ export const MODE_ORDER: BuiltInMode[] = [
   'negotiation',
 ];
 
-/** The definition that applies to a brief, including a custom kind the user wrote. */
 export function describeMode(brief: Pick<Brief, 'mode' | 'custom'>): ModeDefinition {
   if (brief.mode !== 'custom') return MODES[brief.mode] ?? MODES.general;
 

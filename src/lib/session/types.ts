@@ -3,7 +3,6 @@ import type { ProviderId } from '../llm/providers';
 export type BuiltInMode = 'general' | 'interview' | 'one-on-one' | 'sales' | 'negotiation';
 export type MeetingMode = BuiltInMode | 'custom';
 
-/** A kind of meeting the user defined, with their own instructions for Mitya. */
 export interface CustomMode {
   id: string;
   label: string;
@@ -17,7 +16,6 @@ export interface AgendaItem {
 
 export interface Brief {
   mode: MeetingMode;
-  /** Set when `mode` is 'custom'. A copy, so old sessions keep it if the kind is deleted. */
   custom: CustomMode | null;
   title: string;
   goal: string;
@@ -89,7 +87,6 @@ export interface SessionSummary {
   id: string;
   title: string;
   mode: MeetingMode;
-  /** Display name of the kind, so custom kinds still read right in history. */
   modeLabel?: string;
   startedAt: number;
   endedAt: number | null;

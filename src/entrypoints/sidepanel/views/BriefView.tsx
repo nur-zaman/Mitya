@@ -194,7 +194,6 @@ function MeetingKind(props: { brief: Brief; onChange: (patch: Partial<Brief>) =>
     void customModesItem.setValue(kinds);
   }
 
-  // A kind that was started and left blank isn't worth keeping.
   function leaveCustom(): CustomMode[] {
     if (!custom || custom.label.trim() || custom.guidance.trim()) return saved;
     const kept = saved.filter((kind) => kind.id !== custom.id);
