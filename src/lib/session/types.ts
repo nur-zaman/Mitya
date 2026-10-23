@@ -1,6 +1,13 @@
 import type { ProviderId } from '../llm/providers';
 
-export type MeetingMode = 'general' | 'interview' | 'one-on-one' | 'sales' | 'negotiation';
+export type BuiltInMode = 'general' | 'interview' | 'one-on-one' | 'sales' | 'negotiation';
+export type MeetingMode = BuiltInMode | 'custom';
+
+export interface CustomMode {
+  id: string;
+  label: string;
+  guidance: string;
+}
 
 export interface AgendaItem {
   id: string;
@@ -9,6 +16,7 @@ export interface AgendaItem {
 
 export interface Brief {
   mode: MeetingMode;
+  custom: CustomMode | null;
   title: string;
   goal: string;
   agenda: AgendaItem[];
@@ -79,6 +87,7 @@ export interface SessionSummary {
   id: string;
   title: string;
   mode: MeetingMode;
+  modeLabel?: string;
   startedAt: number;
   endedAt: number | null;
   utteranceCount: number;

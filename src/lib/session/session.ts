@@ -1,6 +1,7 @@
 import type { TrackedUtterance } from '../captions/tracker';
 import { countWords } from '../captions/merge';
 import type { LiveSuggestion } from '../llm/prompts';
+import { describeMode } from '../modes';
 import type { Brief, Nudge, Session, SessionSummary } from './types';
 
 export function createSession(options: {
@@ -98,6 +99,7 @@ export function summarize(session: Session): SessionSummary {
     id: session.id,
     title: session.brief.title || `Meeting ${session.meetingCode}`,
     mode: session.brief.mode,
+    modeLabel: describeMode(session.brief).label,
     startedAt: session.startedAt,
     endedAt: session.endedAt,
     utteranceCount: session.utterances.length,

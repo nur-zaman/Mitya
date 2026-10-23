@@ -525,6 +525,29 @@ input[type='checkbox'] {
   color: var(--paper);
 }
 
+.chip.add {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-style: dashed;
+  color: var(--muted);
+}
+
+.chip.add:hover {
+  color: var(--ink);
+}
+
+.custom-kind {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
 .segmented {
   display: flex;
   border: 1px solid var(--line-strong);

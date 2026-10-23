@@ -1,4 +1,4 @@
-import { MODES } from './modes';
+import { describeMode } from './modes';
 import type { Session } from './session/types';
 
 const STATUS_MARK = { covered: '[x]', partial: '[~]', missed: '[ ]' } as const;
@@ -10,7 +10,7 @@ export function sessionToMarkdown(session: Session): string {
 
   out.push(`# ${brief.title || `Meeting ${session.meetingCode}`}`, '');
   out.push(
-    `${MODES[brief.mode].label} · ${new Date(session.startedAt).toLocaleString()}` +
+    `${describeMode(brief).label} · ${new Date(session.startedAt).toLocaleString()}` +
       (session.endedAt
         ? ` · ${Math.round((session.endedAt - session.startedAt) / 60_000)} min`
         : ''),
