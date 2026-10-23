@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { NUDGE_LABELS } from '@/lib/labels';
 import { send } from '@/lib/messages';
+import { nameKey, sessionNames } from '@/lib/names';
 import { isFresh, newestFirst } from '@/lib/session/session';
 import type { Session } from '@/lib/session/types';
+import { pronunciationsItem } from '@/lib/storage';
+import { useStorageItem } from '@/lib/use-storage';
 import { RecapPanel } from './RecapPanel';
 
-export function LiveView({ session }: { session: Session | null }) {
+export function LiveView({ session, selfLabel }: { session: Session | null; selfLabel: string }) {
   if (!session) {
     return (
       <div className="empty">
@@ -29,6 +32,7 @@ export function LiveView({ session }: { session: Session | null }) {
       <SessionBar session={session} />
       {session.analysis.error && !ended && <p className="error">{session.analysis.error}</p>}
       {ended && <RecapPanel session={session} />}
+      <People session={session} selfLabel={selfLabel} />
       <Agenda session={session} />
       <Nudges session={session} />
       <Transcript session={session} />
@@ -75,6 +79,26 @@ function SessionBar({ session }: { session: Session }) {
         </div>
       )}
     </div>
+  );
+}
+
+function People({ session, selfLabel }: { session: Session; selfLabel: string }) {
+  const hints = useStorageItem(pronunciationsItem);
+  const names = sessionNames(session, selfLabel);
+  if (!names.length) return null;
+
+  return (
+    <ul className="people">
+      {names.map((name) => {
+        const hint = hints?.[nameKey(name)]?.hint;
+        return (
+          <li key={name}>
+            {name}
+            {hint && <span className="muted"> {hint}</span>}
+          </li>
+        );
+      })}
+    </ul>
   );
 }
 

@@ -75,7 +75,7 @@ export function App() {
 
       <main>
         {view === 'brief' && <BriefView />}
-        {view === 'live' && <LiveView session={session} />}
+        {view === 'live' && <LiveView session={session} selfLabel={settings.selfLabel} />}
         {view === 'history' && <HistoryView />}
         {view === 'settings' && (
           <SettingsView settings={settings} onDone={() => setView('brief')} />

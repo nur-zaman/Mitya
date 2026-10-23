@@ -238,7 +238,6 @@ footer button.quiet {
 }
 
 @media (prefers-reduced-motion: reduce) {
-
   .status::before,
   .nudge,
   .nudge.fresh {

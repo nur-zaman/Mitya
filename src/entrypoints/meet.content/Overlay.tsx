@@ -146,9 +146,9 @@ function useDraggable() {
 
   const style: React.CSSProperties = position
     ? {
-      left: clamp(position.x, 0, window.innerWidth - 120),
-      top: clamp(position.y, 0, window.innerHeight - 40),
-    }
+        left: clamp(position.x, 0, window.innerWidth - 120),
+        top: clamp(position.y, 0, window.innerHeight - 40),
+      }
     : { right: 16, top: 16 };
 
   return { ref, style, onPointerDown };

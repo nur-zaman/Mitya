@@ -1,8 +1,8 @@
 import { MODES } from '../modes';
+import { formatNames, sessionNames } from '../names';
 import type { Brief, Nudge, NudgeKind, Recap, Session, Utterance } from '../session/types';
 import type { ChatMessage, JsonSchemaFormat } from './types';
 
-/** The transcript always gets at least this much room, however long the brief is. */
 const MIN_TRANSCRIPT_CHARS = 3_000;
 
 export interface LiveSuggestion {
@@ -11,6 +11,10 @@ export interface LiveSuggestion {
 }
 
 export type RecapDraft = Omit<Recap, 'createdAt'>;
+
+export interface HintDraft {
+  hints: { name: string; hint: string }[];
+}
 
 export const LIVE_FORMAT: JsonSchemaFormat = {
   name: 'live_suggestion',
@@ -65,6 +69,29 @@ export const RECAP_FORMAT: JsonSchemaFormat = {
   },
 };
 
+export const HINT_FORMAT: JsonSchemaFormat = {
+  name: 'pronunciation_hints',
+  schema: {
+    type: 'object',
+    additionalProperties: false,
+    required: ['hints'],
+    properties: {
+      hints: {
+        type: 'array',
+        items: {
+          type: 'object',
+          additionalProperties: false,
+          required: ['name', 'hint'],
+          properties: {
+            name: { type: 'string' },
+            hint: { type: 'string' },
+          },
+        },
+      },
+    },
+  },
+};
+
 const LIVE_SYSTEM = `You are Mitya, a discreet assistant sitting beside the user during a live video call. You read the running transcript and occasionally slip the user a short note. The user is mid-conversation and can only glance at your notes, so every note must be worth the interruption.
 
 Note kinds:
@@ -81,6 +108,7 @@ Rules:
 - Never repeat or rephrase a note you already gave.
 - Lines from "{self}" are the user. Everyone else is the other side.
 - Captions are machine transcribed. Read past obvious recognition errors instead of flagging them.
+- When a transcript word sounds like a listed name or term, it is that name. Always use the listed spelling.
 - In coveredAgendaIds, list the ids of every agenda item that has been meaningfully discussed so far.`;
 
 const RECAP_SYSTEM = `You write the debrief after a meeting for the person who ran it. Be concrete and brief. Use the people's own words where it helps. Do not invent facts that are not in the transcript.
@@ -89,7 +117,15 @@ const RECAP_SYSTEM = `You write the debrief after a meeting for the person who r
 - agenda: one entry per agenda item with its status and a short note. Empty if there was no agenda.
 - keyPoints: the facts, decisions, and claims worth remembering.
 - concerns: anything vague, contradictory, or worth verifying. Empty if none.
-- followUps: concrete next steps, with owners when they were named.`;
+- followUps: concrete next steps, with owners when they were named.
+
+Captions often mishear names. When a transcript word sounds like a listed name or term, it is that name. Always use the listed spelling.`;
+
+const HINT_SYSTEM = `You help an English speaker say names correctly on a call. For each name or term, write a pronunciation respelling in plain English syllables, separated by hyphens, with the stressed syllable in capitals. Examples: Siobhan -> shiv-AWN, Nguyen -> win, Joaquin -> wah-KEEN, Nginx -> EN-jin-ex.
+
+- Use the most common pronunciation for the name's likely origin.
+- Return an empty hint when a typical English speaker would already say it right (Sam, Google, Acme).
+- Return one entry per input name, with the name exactly as given.`;
 
 /**
  * Builds the prompt for a live check. `budgetChars` caps the whole prompt so
@@ -105,8 +141,10 @@ export function buildLiveMessages(
   const system = `${LIVE_SYSTEM.replace('{self}', selfLabel)}\n\nMeeting type guidance:\n${MODES[session.brief.mode].guidance}`;
 
   const previous = session.nudges.slice(-8);
+  const names = formatNames(sessionNames(session, selfLabel));
   const header = [
-    formatBrief(session.brief, Math.floor(budgetChars * 0.35)),
+    formatBrief(session.brief, Math.floor(budgetChars * 0.35) - names.length),
+    names,
     formatClock(session, now),
     previous.length ? `Notes you already gave:\n${previous.map(formatNudge).join('\n')}` : '',
   ]
@@ -133,16 +171,27 @@ export function buildRecapMessages(
   selfLabel: string,
   budgetChars: number,
 ): ChatMessage[] {
+  const names = formatNames(sessionNames(session, selfLabel));
   const header = [
-    formatBrief(session.brief, Math.floor(budgetChars * 0.25)),
+    formatBrief(session.brief, Math.floor(budgetChars * 0.25) - names.length),
+    names,
     `Lines from "${selfLabel}" are the person who ran the meeting.`,
-  ].join('\n\n');
+  ]
+    .filter(Boolean)
+    .join('\n\n');
   const room = Math.max(MIN_TRANSCRIPT_CHARS, budgetChars - RECAP_SYSTEM.length - header.length);
   const user = `${header}\n\nTranscript:\n${formatTranscript(session.utterances, session.startedAt, room)}`;
 
   return [
     { role: 'system', content: RECAP_SYSTEM },
     { role: 'user', content: user },
+  ];
+}
+
+export function buildHintMessages(names: string[]): ChatMessage[] {
+  return [
+    { role: 'system', content: HINT_SYSTEM },
+    { role: 'user', content: names.join('\n') },
   ];
 }
 

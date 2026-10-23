@@ -7,14 +7,13 @@ export interface AgendaItem {
   text: string;
 }
 
-/** What the user tells Mitya before (or during) a meeting. */
 export interface Brief {
   mode: MeetingMode;
   title: string;
   goal: string;
   agenda: AgendaItem[];
-  /** Free-form background: a job description, a CV, notes about the other person. */
   context: string;
+  names: string[];
   durationMinutes: number | null;
 }
 
@@ -32,9 +31,7 @@ export type NudgeKind = 'ask' | 'flag' | 'remind' | 'explain';
 export interface Nudge {
   id: string;
   kind: NudgeKind;
-  /** One line the user can glance at mid-conversation. */
   text: string;
-  /** Optional reasoning or extra context, shown on demand. */
   detail: string;
   createdAt: number;
   dismissed: boolean;
@@ -56,9 +53,7 @@ export type SessionStatus = 'live' | 'paused' | 'ended';
 export interface AnalysisState {
   running: boolean;
   lastRunAt: number | null;
-  /** Transcript word count at the time of the last run. */
   lastRunWords: number;
-  /** Set after a rate limit; no calls until then. */
   cooldownUntil: number | null;
   error: string | null;
 }
@@ -93,17 +88,12 @@ export type Sensitivity = 'quiet' | 'balanced' | 'chatty';
 
 export interface Settings {
   provider: ProviderId;
-  /** Pasted API keys. Unused for ChatGPT, which signs in instead. */
   apiKeys: Record<ProviderId, string>;
   models: Record<ProviderId, string>;
-  /** Reasoning effort per provider; null means the model's default. */
   thinking: Record<ProviderId, string | null>;
-  /** Use the provider's priority tier when it has one. */
   fastMode: boolean;
-  /** Email of the signed-in ChatGPT account, null when signed out. */
   chatgptAccount: string | null;
   sensitivity: Sensitivity;
   showOverlay: boolean;
-  /** How Meet labels your own captions. "You" in English. */
   selfLabel: string;
 }

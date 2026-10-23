@@ -1,17 +1,12 @@
 import { storage } from 'wxt/utils/storage';
 import { PROVIDER_ORDER, PROVIDERS, type ProviderId } from './llm/providers';
+import type { PronunciationStore } from './names';
 import type { Brief, Session, SessionSummary, Settings } from './session/types';
-
-/*
- * chrome.storage.local is the single source of truth. The background worker
- * is the only writer for sessions; the side panel and the overlay just watch.
- */
 
 export const DEFAULT_SETTINGS: Settings = {
   provider: 'groq',
   apiKeys: perProvider(() => ''),
   models: perProvider((id) => PROVIDERS[id].defaultModel),
-  // Live nudges are only useful while the moment lasts, so think briefly by default.
   thinking: perProvider(() => 'low'),
   fastMode: false,
   chatgptAccount: null,
@@ -26,6 +21,7 @@ export const EMPTY_BRIEF: Brief = {
   goal: '',
   agenda: [],
   context: '',
+  names: [],
   durationMinutes: null,
 };
 
@@ -35,6 +31,10 @@ export const settingsItem = storage.defineItem<Settings>('local:settings', {
 
 export const briefItem = storage.defineItem<Brief>('local:brief', {
   fallback: EMPTY_BRIEF,
+});
+
+export const pronunciationsItem = storage.defineItem<PronunciationStore>('local:pronunciations', {
+  fallback: {},
 });
 
 export const currentSessionItem = storage.defineItem<Session | null>('local:currentSession', {
@@ -58,10 +58,6 @@ export async function getSettings(): Promise<Settings> {
   return normalizeSettings(await settingsItem.getValue());
 }
 
-/**
- * Fills in anything an older version didn't save, and falls back to the
- * default provider if the saved one no longer exists.
- */
 export function normalizeSettings(stored: Partial<Settings>): Settings {
   return {
     ...DEFAULT_SETTINGS,
@@ -73,7 +69,14 @@ export function normalizeSettings(stored: Partial<Settings>): Settings {
   };
 }
 
-/** True when the selected provider has a key or a signed-in account. */
+export function normalizeBrief(stored: Partial<Brief>): Brief {
+  return { ...EMPTY_BRIEF, ...stored, names: stored.names ?? [] };
+}
+
+export async function getBrief(): Promise<Brief> {
+  return normalizeBrief(await briefItem.getValue());
+}
+
 export function hasCredentials(settings: Settings): boolean {
   if (PROVIDERS[settings.provider].auth === 'chatgpt') return Boolean(settings.chatgptAccount);
   return Boolean(settings.apiKeys?.[settings.provider]);
