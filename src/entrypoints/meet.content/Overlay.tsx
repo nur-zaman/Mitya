@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { ChevronIcon, CloseIcon } from '@/components/icons';
 import { Mark } from '@/components/Mark';
 import { describeStatus, NUDGE_LABELS } from '@/lib/labels';
 import { send } from '@/lib/messages';
@@ -48,8 +49,10 @@ export function Overlay({ watcher }: { watcher: MeetWatcher }) {
           className="icon"
           onClick={() => setCollapsed(!collapsed)}
           aria-label={collapsed ? 'Expand' : 'Collapse'}
+          aria-expanded={!collapsed}
+          title={collapsed ? 'Expand' : 'Collapse'}
         >
-          {collapsed ? '+' : '−'}
+          <ChevronIcon up={!collapsed} />
         </button>
       </header>
 
@@ -72,6 +75,10 @@ export function Overlay({ watcher }: { watcher: MeetWatcher }) {
             </p>
           )}
 
+          {nudges.length === 0 && session?.status === 'live' && meet.captionsOn && (
+            <p className="hint">Suggestions show up here when there's something worth saying.</p>
+          )}
+
           {nudges.length > 0 && (
             <ul className="nudges">
               {nudges.map((nudge) => (
@@ -85,9 +92,10 @@ export function Overlay({ watcher }: { watcher: MeetWatcher }) {
                   <button
                     className="icon dismiss"
                     aria-label="Dismiss"
+                    title="Dismiss"
                     onClick={() => void send({ type: 'nudge:dismiss', id: nudge.id })}
                   >
-                    ×
+                    <CloseIcon size={12} />
                   </button>
                 </li>
               ))}

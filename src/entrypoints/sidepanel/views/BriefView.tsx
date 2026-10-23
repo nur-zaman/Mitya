@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { CloseIcon } from '@/components/icons';
 import { MODE_ORDER, MODES } from '@/lib/modes';
 import { nameKey, uniqueNames, type PronunciationStore } from '@/lib/names';
 import type { AgendaItem, Brief } from '@/lib/session/types';
@@ -102,10 +103,10 @@ export function BriefView() {
                 />
                 <button
                   className="icon-button small"
-                  aria-label="Remove"
+                  aria-label={`Remove agenda item ${index + 1}`}
                   onClick={() => update({ agenda: brief.agenda.filter((a) => a.id !== item.id) })}
                 >
-                  ×
+                  <CloseIcon size={12} />
                 </button>
               </li>
             ))}
@@ -138,7 +139,7 @@ export function BriefView() {
                   aria-label={`Remove ${name}`}
                   onClick={() => update({ names: brief.names.filter((n) => n !== name) })}
                 >
-                  ×
+                  <CloseIcon size={12} />
                 </button>
               </li>
             ))}

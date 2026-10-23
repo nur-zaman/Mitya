@@ -139,6 +139,7 @@ function ApiKeyField(props: { provider: Provider; saved: string; onSave: (key: s
   const { provider } = props;
   const [value, setValue] = useState(props.saved);
   const [check, setCheck] = useState<Check>({ state: 'idle' });
+  const connected = Boolean(props.saved) && value.trim() === props.saved;
 
   async function connect() {
     // Must run inside the click: Chrome only grants permissions on a user gesture.
@@ -175,7 +176,7 @@ function ApiKeyField(props: { provider: Provider; saved: string; onSave: (key: s
           spellCheck={false}
         />
         <button
-          className="button"
+          className={`button ${connected ? 'quiet' : ''}`}
           onClick={() => void connect()}
           disabled={!value.trim() || check.state === 'checking'}
         >
@@ -183,15 +184,18 @@ function ApiKeyField(props: { provider: Provider; saved: string; onSave: (key: s
         </button>
       </div>
       <small className={check.state === 'error' ? 'error' : 'muted'}>
-        {check.message ?? (
-          <>
-            Create one at{' '}
-            <a href={provider.keyUrl} target="_blank" rel="noreferrer">
-              {new URL(provider.keyUrl).host}
-            </a>
-            . Stored only in this browser.
-          </>
-        )}
+        {check.message ??
+          (connected ? (
+            'Connected. The key is stored only in this browser.'
+          ) : (
+            <>
+              Create one at{' '}
+              <a href={provider.keyUrl} target="_blank" rel="noreferrer">
+                {new URL(provider.keyUrl).host}
+              </a>
+              . Stored only in this browser.
+            </>
+          ))}
       </small>
     </label>
   );
